@@ -81,6 +81,23 @@ As you continue to work on your project, you will install and upgrade packages, 
 
 Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call `renv::restore()` to reinstall the specific package versions recorded in the lockfile.
 
+Contents of lock file.
+
+```{r renv_lock}
+here::i_am("renv.qmd")
+renv_lock <- yaml::read_yaml(paste0(here::here(), '/renv.lock'))
+str(renv_lock, max.level = 2)
+```
+
+Search paths for packages.
+
+```{r lib_paths}
+.libPaths()
+```
+
+* Run `renv::status()` to report inconsistencies between lockfile, library, and dependencies.
+* Run `renv::snapshot()` to record current state of the project library in the lockfile.
+
 ## Caching
 
 If you use renv for multiple projects, you'll have multiple libraries, meaning that you'll often need to install the same package in multiple places. It would be annoying if you had to download (or worse, compile) the package repeatedly, so renv uses a package cache. That means you only ever have to download and install a package once, and for each subsequent install, renv will just add a link from the project library to the global cache. You can learn more about the cache in vignette("package-install").
@@ -107,6 +124,18 @@ You can find the location of the current cache with `renv::paths$cache()`.
 
 ```{r renv_cache}
 renv::paths$cache()
+```
+
+List contents of cache.
+
+```{r renv_cache_list}
+list.files(renv::paths$cache())
+```
+
+List contents of cache for the {here} package.
+
+```{r renv_cache_here}
+list.files(paste0(renv::paths$cache(), '/here'), recursive = TRUE)
 ```
 
 If you'd like to share the package cache across multiple users, you can do so by setting the `RENV_PATHS_CACHE` environment variable to a shared path. This variable should be set in an R startup file to make it apply to all R sessions. While you can set it in a project-local `.Renviron`, or the user-level `~/.Renviron`, we generally recommend using the R installation's site-wide `Renviron.site` if you'd like to ensure the same cache path is visible to all users of R on a system.
