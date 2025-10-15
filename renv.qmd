@@ -1,0 +1,82 @@
+---
+title: "{renv}"
+subtitle: "Create reproducible environments for your R projects"
+author:
+  - name: "Dave Tang"
+    affiliation: "davetangdotorg"
+    email: me@davetang.org
+date-format: iso
+date: last-modified
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    code-fold: false
+    code-summary: "Show/Hide code"
+    embed-resources: true
+    output-file: index.html
+execute:
+  echo: true
+  warning: false
+  message: false
+  cache: false
+  cache-path: _cache/
+params:
+  dataset:
+    label: "Dataset to use"
+    value: "data/mydata.csv"
+  n_samples:
+    label: "Number of samples"
+    value: 100
+    type: integer
+  show_results:
+    label: "Return results in report"
+    value: true
+    type: boolean
+metadata:
+  license: CC-BY 4.0
+  keywords: [renv, reproducibility]
+---
+
+## Overview
+
+The [renv](https://rstudio.github.io/renv/index.html) package helps you create reproducible environments for your R projects. Use renv to make your R projects more isolated, portable and reproducible.
+
+* Isolated: Installing a new or updated package for one project won’t break your other projects, and vice versa. That’s because renv gives each project its own private library.
+* Portable: Easily transport your projects from one computer to another, even across different platforms. renv makes it easy to install the packages your project depends on.
+* Reproducible: renv records the exact package versions you depend on, and ensures those exact versions are the ones that get installed wherever you go.
+
+## Workflow
+
+Use `renv::init()` to initialise renv in a new or existing project. This will set up a project library, containing all the packages you're currently using. The packages (and all the metadata needed to reinstall them) are recorded into a lockfile, `renv.lock`, and a `.Rprofile` ensures that the library is used every time you open that project.
+
+Documentation for `renv::init()`:
+
+Call `renv::init()` to start using renv in the current project. This will:
+
+1. Set up project infrastructure (as described in `scaffold()`) including the project library and the `.Rprofile` that ensures renv will be used in all future sessions,
+2. Discover the packages that are currently being used in your project (via `dependencies()`), and install them into the project library (as described in `hydrate()`),
+3. Create a lockfile that records the state of the project library so it can be restored by others (as described in `snapshot()`),
+4. Restart R (if running inside RStudio).
+
+If you call `renv::init()` with a project that is already using renv, it will attempt to do the right thing: it will restore the project library if it's missing, or otherwise ask you what to do.
+
+Create a new project using `usethis::create_project`; {usethis} is a workflow package: it automates repetitive tasks that arise during project setup and development, both for R packages and non-package projects.
+
+```{r create_project, eval=FALSE}
+here::i_am("renv.qmd")
+usethis::create_project(here::here())
+```
+
+Initiate renv.
+
+```{r renv_init, eval=FALSE}
+here::i_am("renv.qmd")
+renv::init(project = here::here())
+```
+
+As you continue to work on your project, you will install and upgrade packages, either using `install.packages()` and `update.packages()` or `renv::install()` and `renv::update()`. After you've confirmed your code works as expected, use `renv::snapshot()` to record the packages and their sources in the lockfile.
+
+Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call `renv::restore()` to reinstall the specific package versions recorded in the lockfile.
