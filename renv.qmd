@@ -79,21 +79,23 @@ renv::init(project = here::here(), bioconductor = "3.22")
 
 As you continue to work on your project, you will install and upgrade packages, either using `install.packages()` and `update.packages()` or `renv::install()` and `renv::update()`. After you've confirmed your code works as expected, use `renv::snapshot()` to record the packages and their sources in the lockfile.
 
-Install {BiocManager} and {edgeR}; fails because `there is no package called ‘statmod’`.
+[Packages from Bioconductor can be installed](https://rstudio.github.io/renv/reference/install.html#bioconductor) by using the `bioc:: prefix`.
 
-```{r bioc_manager_edger, eval=FALSE}
-install.packages("BiocManager")
-BiocManager::install("edgeR")
+```{r install_edger, eval=FALSE}
+renv::install("bioc::edgeR")
 renv::snapshot()
 ```
 
-Installing {SingleCellExperiment} also doesn't work:
+[Why isn’t my package being snapshotted into the lockfile?](https://rstudio.github.io/renv/articles/faq.html#why-isnt-my-package-being-snapshotted-into-the-lockfile):
 
-```{r bioc_manager_sce, eval=FALSE}
-BiocManager::install("SingleCellExperiment")
-```
-```
-ERROR: dependencies ‘SummarizedExperiment’, ‘S4Vectors’, ‘GenomicRanges’, ‘DelayedArray’ are not available for package ‘SingleCellExperiment’
+1. Installed your project library, and
+2. Used by the project, as determined by `renv::dependencies()`.
+
+After using a function from {edgeR}, I could update the lockfile.
+
+```{r edger_cpm}
+edgeR::cpm(y = matrix(1:100, nrow = 10))
+renv::dependencies()
 ```
 
 Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call `renv::restore()` to reinstall the specific package versions recorded in the lockfile.

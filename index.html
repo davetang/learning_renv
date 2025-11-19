@@ -3177,23 +3177,96 @@ vertical-align: -.125em;
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>(<span class="at">project =</span> here<span class="sc">::</span><span class="fu">here</span>(), <span class="at">bioconductor =</span> <span class="st">&quot;3.22&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>As you continue to work on your project, you will install and upgrade packages, either using <code>install.packages()</code> and <code>update.packages()</code> or <code>renv::install()</code> and <code>renv::update()</code>. After you’ve confirmed your code works as expected, use <code>renv::snapshot()</code> to record the packages and their sources in the lockfile.</p>
-<p>Install {BiocManager} and {edgeR}; fails because <code>there is no package called ‘statmod’</code>.</p>
+<p><a href="https://rstudio.github.io/renv/reference/install.html#bioconductor">Packages from Bioconductor can be installed</a> by using the <code>bioc:: prefix</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;edgeR&quot;</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;bioc::edgeR&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Installing {SingleCellExperiment} also doesn’t work:</p>
+<p><a href="https://rstudio.github.io/renv/articles/faq.html#why-isnt-my-package-being-snapshotted-into-the-lockfile">Why isn’t my package being snapshotted into the lockfile?</a>:</p>
+<ol type="1">
+<li>Installed your project library, and</li>
+<li>Used by the project, as determined by <code>renv::dependencies()</code>.</li>
+</ol>
+<p>After using a function from {edgeR}, I could update the lockfile.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;SingleCellExperiment&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>edgeR<span class="sc">::</span><span class="fu">cpm</span>(<span class="at">y =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="at">nrow =</span> <span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+ [1,]  18181.82  70967.74  82352.94  87323.94  90109.89  91891.89  93129.77
+ [2,]  36363.64  77419.35  86274.51  90140.85  92307.69  93693.69  94656.49
+ [3,]  54545.45  83870.97  90196.08  92957.75  94505.49  95495.50  96183.21
+ [4,]  72727.27  90322.58  94117.65  95774.65  96703.30  97297.30  97709.92
+ [5,]  90909.09  96774.19  98039.22  98591.55  98901.10  99099.10  99236.64
+ [6,] 109090.91 103225.81 101960.78 101408.45 101098.90 100900.90 100763.36
+ [7,] 127272.73 109677.42 105882.35 104225.35 103296.70 102702.70 102290.08
+ [8,] 145454.55 116129.03 109803.92 107042.25 105494.51 104504.50 103816.79
+ [9,] 163636.36 122580.65 113725.49 109859.15 107692.31 106306.31 105343.51
+[10,] 181818.18 129032.26 117647.06 112676.06 109890.11 108108.11 106870.23
+           [,8]      [,9]     [,10]
+ [1,]  94039.74  94736.84  95287.96
+ [2,]  95364.24  95906.43  96335.08
+ [3,]  96688.74  97076.02  97382.20
+ [4,]  98013.25  98245.61  98429.32
+ [5,]  99337.75  99415.20  99476.44
+ [6,] 100662.25 100584.80 100523.56
+ [7,] 101986.75 101754.39 101570.68
+ [8,] 103311.26 102923.98 102617.80
+ [9,] 104635.76 104093.57 103664.92
+[10,] 105960.26 105263.16 104712.04</code></pre>
 </div>
-<pre><code>ERROR: dependencies ‘SummarizedExperiment’, ‘S4Vectors’, ‘GenomicRanges’, ‘DelayedArray’ are not available for package ‘SingleCellExperiment’</code></pre>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">dependencies</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Finding R package dependencies ... Done!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                            Source   Package Require Version
+1       /home/rstudio/work/learning_renv/renv.lock      renv                
+2        /home/rstudio/work/learning_renv/renv.qmd     shiny                
+3        /home/rstudio/work/learning_renv/renv.qmd     edgeR                
+4        /home/rstudio/work/learning_renv/renv.qmd      renv                
+5        /home/rstudio/work/learning_renv/renv.qmd      here                
+6        /home/rstudio/work/learning_renv/renv.qmd      yaml                
+7        /home/rstudio/work/learning_renv/renv.qmd      renv                
+8        /home/rstudio/work/learning_renv/renv.qmd      renv                
+9        /home/rstudio/work/learning_renv/renv.qmd      renv                
+10       /home/rstudio/work/learning_renv/renv.qmd rmarkdown                
+11 /home/rstudio/work/learning_renv/renv.rmarkdown rmarkdown                
+12 /home/rstudio/work/learning_renv/renv.rmarkdown     shiny                
+13 /home/rstudio/work/learning_renv/renv.rmarkdown     edgeR                
+14 /home/rstudio/work/learning_renv/renv.rmarkdown      renv                
+15 /home/rstudio/work/learning_renv/renv.rmarkdown      here                
+16 /home/rstudio/work/learning_renv/renv.rmarkdown      yaml                
+17 /home/rstudio/work/learning_renv/renv.rmarkdown      renv                
+18 /home/rstudio/work/learning_renv/renv.rmarkdown      renv                
+19 /home/rstudio/work/learning_renv/renv.rmarkdown      renv                
+     Dev
+1  FALSE
+2  FALSE
+3  FALSE
+4  FALSE
+5  FALSE
+6  FALSE
+7  FALSE
+8  FALSE
+9  FALSE
+10 FALSE
+11 FALSE
+12 FALSE
+13 FALSE
+14 FALSE
+15 FALSE
+16 FALSE
+17 FALSE
+18 FALSE
+19 FALSE</code></pre>
+</div>
+</div>
 <p>Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call <code>renv::restore()</code> to reinstall the specific package versions recorded in the lockfile.</p>
 <p>Contents of lock file.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">&quot;renv.qmd&quot;</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>renv_lock <span class="ot">&lt;-</span> yaml<span class="sc">::</span><span class="fu">read_yaml</span>(<span class="fu">paste0</span>(here<span class="sc">::</span><span class="fu">here</span>(), <span class="st">&#39;/renv.lock&#39;</span>))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(renv_lock, <span class="at">max.level =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>here<span class="sc">::</span><span class="fu">i_am</span>(<span class="st">&quot;renv.qmd&quot;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>renv_lock <span class="ot">&lt;-</span> yaml<span class="sc">::</span><span class="fu">read_yaml</span>(<span class="fu">paste0</span>(here<span class="sc">::</span><span class="fu">here</span>(), <span class="st">&#39;/renv.lock&#39;</span>))</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(renv_lock, <span class="at">max.level =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>List of 3
  $ R           :List of 2
@@ -3201,7 +3274,9 @@ vertical-align: -.125em;
   ..$ Repositories:List of 6
  $ Bioconductor:List of 1
   ..$ Version: chr &quot;3.22&quot;
- $ Packages    :List of 40
+ $ Packages    :List of 47
+  ..$ BiocManager:List of 18
+  ..$ BiocVersion:List of 19
   ..$ R6         :List of 19
   ..$ Rcpp       :List of 19
   ..$ base64enc  :List of 14
@@ -3211,6 +3286,7 @@ vertical-align: -.125em;
   ..$ commonmark :List of 18
   ..$ crayon     :List of 19
   ..$ digest     :List of 19
+  ..$ edgeR      :List of 21
   ..$ evaluate   :List of 20
   ..$ fastmap    :List of 16
   ..$ fontawesome:List of 21
@@ -3224,7 +3300,10 @@ vertical-align: -.125em;
   ..$ jsonlite   :List of 18
   ..$ knitr      :List of 22
   ..$ later      :List of 20
+  ..$ lattice    :List of 21
   ..$ lifecycle  :List of 21
+  ..$ limma      :List of 21
+  ..$ locfit     :List of 17
   ..$ magrittr   :List of 21
   ..$ memoise    :List of 17
   ..$ mime       :List of 17
@@ -3237,6 +3316,7 @@ vertical-align: -.125em;
   ..$ sass       :List of 21
   ..$ shiny      :List of 23
   ..$ sourcetools:List of 16
+  ..$ statmod    :List of 15
   ..$ tinytex    :List of 18
   ..$ withr      :List of 22
   ..$ xfun       :List of 20
@@ -3246,7 +3326,7 @@ vertical-align: -.125em;
 </div>
 <p>Search paths for packages.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.libPaths</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">.libPaths</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;/home/rstudio/work/learning_renv/renv/library/linux-ubuntu-noble/R-4.5/x86_64-pc-linux-gnu&quot;
 [2] &quot;/home/rstudio/.cache/R/renv/sandbox/linux-ubuntu-noble/R-4.5/x86_64-pc-linux-gnu/25ebdc09&quot; </code></pre>
@@ -3278,29 +3358,29 @@ vertical-align: -.125em;
 <h3 class="anchored" data-anchor-id="cache-location">Cache location</h3>
 <p>You can find the location of the current cache with <code>renv::paths$cache()</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;/renv_cache/v5/linux-ubuntu-noble/R-4.5/x86_64-pc-linux-gnu&quot;</code></pre>
 </div>
 </div>
 <p>List contents of cache.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] &quot;base64enc&quot;   &quot;BiocManager&quot; &quot;bslib&quot;       &quot;cachem&quot;      &quot;cli&quot;        
- [6] &quot;commonmark&quot;  &quot;crayon&quot;      &quot;digest&quot;      &quot;evaluate&quot;    &quot;fastmap&quot;    
-[11] &quot;fontawesome&quot; &quot;fs&quot;          &quot;glue&quot;        &quot;here&quot;        &quot;highr&quot;      
-[16] &quot;htmltools&quot;   &quot;httpuv&quot;      &quot;jquerylib&quot;   &quot;jsonlite&quot;    &quot;knitr&quot;      
-[21] &quot;later&quot;       &quot;lifecycle&quot;   &quot;magrittr&quot;    &quot;memoise&quot;     &quot;mime&quot;       
-[26] &quot;promises&quot;    &quot;R6&quot;          &quot;rappdirs&quot;    &quot;Rcpp&quot;        &quot;rlang&quot;      
-[31] &quot;rmarkdown&quot;   &quot;rprojroot&quot;   &quot;sass&quot;        &quot;shiny&quot;       &quot;sourcetools&quot;
-[36] &quot;statmod&quot;     &quot;tinytex&quot;     &quot;withr&quot;       &quot;xfun&quot;        &quot;xtable&quot;     
-[41] &quot;yaml&quot;       </code></pre>
+ [6] &quot;commonmark&quot;  &quot;crayon&quot;      &quot;digest&quot;      &quot;edgeR&quot;       &quot;evaluate&quot;   
+[11] &quot;fastmap&quot;     &quot;fontawesome&quot; &quot;fs&quot;          &quot;glue&quot;        &quot;here&quot;       
+[16] &quot;highr&quot;       &quot;htmltools&quot;   &quot;httpuv&quot;      &quot;jquerylib&quot;   &quot;jsonlite&quot;   
+[21] &quot;knitr&quot;       &quot;later&quot;       &quot;lifecycle&quot;   &quot;limma&quot;       &quot;magrittr&quot;   
+[26] &quot;memoise&quot;     &quot;mime&quot;        &quot;promises&quot;    &quot;R6&quot;          &quot;rappdirs&quot;   
+[31] &quot;Rcpp&quot;        &quot;rlang&quot;       &quot;rmarkdown&quot;   &quot;rprojroot&quot;   &quot;sass&quot;       
+[36] &quot;shiny&quot;       &quot;sourcetools&quot; &quot;statmod&quot;     &quot;tinytex&quot;     &quot;withr&quot;      
+[41] &quot;xfun&quot;        &quot;xtable&quot;      &quot;yaml&quot;       </code></pre>
 </div>
 </div>
 <p>List contents of cache for the {here} package.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(<span class="fu">paste0</span>(renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>(), <span class="st">&#39;/here&#39;</span>), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list.files</span>(<span class="fu">paste0</span>(renv<span class="sc">::</span>paths<span class="sc">$</span><span class="fu">cache</span>(), <span class="st">&#39;/here&#39;</span>), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] &quot;1.0.1/24b224366f9c2e7534d2344d10d59211/here/demo-project/analysis/report.Rmd&quot;          
  [2] &quot;1.0.1/24b224366f9c2e7534d2344d10d59211/here/demo-project/data/penguins.csv&quot;            
@@ -3370,14 +3450,14 @@ vertical-align: -.125em;
 <p>If you find a problematic package has entered the cache (for example, an installed package has become corrupted), that package can be removed with the <code>renv::purge()</code> function. See the <code>?purge</code> documentation for caveats and things to be aware of when removing packages from the cache.</p>
 <p>You can also force a package to be re-installed and re-cached with the following functions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># restore packages from the lockfile, bypassing the cache</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">rebuild =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># re-install a package</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;&lt;package&gt;&quot;</span>, <span class="at">rebuild =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># rebuild all packages in the project</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">rebuild</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># restore packages from the lockfile, bypassing the cache</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">rebuild =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># re-install a package</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;&lt;package&gt;&quot;</span>, <span class="at">rebuild =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># rebuild all packages in the project</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">rebuild</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
