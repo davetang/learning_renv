@@ -9,7 +9,7 @@ PORT=9998
 LIB=${HOME}/r_packages_${RVER}
 
 if [[ ! -d ${LIB} ]]; then
-   mkdir ${LIB}
+   mkdir "${LIB}"
 fi
 
 docker run \
@@ -17,11 +17,11 @@ docker run \
    -d \
    --rm \
    -p ${PORT}:8787 \
-   -v ${LIB}:/packages \
-   -v ${HOME}/github/:/home/rstudio/work \
+   -v "${LIB}":/packages \
+   -v "${HOME}"/github/:/home/rstudio/work \
    -e PASSWORD=password \
-   -e USERID=$(id -u) \
-   -e GROUPID=$(id -g) \
+   -e USERID="$(id -u)" \
+   -e GROUPID="$(id -g)" \
    ${IMAGE}
 
 >&2 echo ${NAME} listening on port ${PORT}
