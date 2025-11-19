@@ -19,6 +19,8 @@ docker run \
    -p ${PORT}:8787 \
    -v "${LIB}":/packages \
    -v "${HOME}"/github/:/home/rstudio/work \
+   -v /data/renv_cache:/renv_cache \
+   -e RENV_PATHS_CACHE=/renv_cache \
    -e PASSWORD=password \
    -e USERID="$(id -u)" \
    -e GROUPID="$(id -g)" \
