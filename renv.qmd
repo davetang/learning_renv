@@ -70,23 +70,21 @@ here::i_am("renv.qmd")
 usethis::create_project(here::here())
 ```
 
-Initiate renv.
+[Initiate renv with Bioconductor](https://rstudio.github.io/renv/articles/bioconductor.html).
 
 ```{r renv_init, eval=FALSE}
 here::i_am("renv.qmd")
-renv::init(project = here::here())
+renv::init(project = here::here(), bioconductor = "3.22")
 ```
 
 As you continue to work on your project, you will install and upgrade packages, either using `install.packages()` and `update.packages()` or `renv::install()` and `renv::update()`. After you've confirmed your code works as expected, use `renv::snapshot()` to record the packages and their sources in the lockfile.
 
-Install {BiocManager}.
+Install {BiocManager} and {edgeR}; fails because `there is no package called ‘statmod’`.
 
 ```{r bioc_manager, eval=FALSE}
 install.packages("BiocManager")
+BiocManager::install("edgeR")
 renv::snapshot()
-```
-```
-- Lockfile written to "~/work/learning_renv/renv.lock".
 ```
 
 Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call `renv::restore()` to reinstall the specific package versions recorded in the lockfile.
