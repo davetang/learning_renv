@@ -81,10 +81,19 @@ As you continue to work on your project, you will install and upgrade packages, 
 
 Install {BiocManager} and {edgeR}; fails because `there is no package called ‘statmod’`.
 
-```{r bioc_manager, eval=FALSE}
+```{r bioc_manager_edger, eval=FALSE}
 install.packages("BiocManager")
 BiocManager::install("edgeR")
 renv::snapshot()
+```
+
+Installing {SingleCellExperiment} also doesn't work:
+
+```{r bioc_manager_sce, eval=FALSE}
+BiocManager::install("SingleCellExperiment")
+```
+```
+ERROR: dependencies ‘SummarizedExperiment’, ‘S4Vectors’, ‘GenomicRanges’, ‘DelayedArray’ are not available for package ‘SingleCellExperiment’
 ```
 
 Later, if you need to share your code with someone else or run your code on new machine, your collaborator (or you) can call `renv::restore()` to reinstall the specific package versions recorded in the lockfile.
