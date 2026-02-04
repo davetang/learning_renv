@@ -212,3 +212,74 @@ This project already has a lockfile. What would you like to do?
 
 Selection: 1
 ```
+
+## Using renv on a Shared Server
+
+On a shared server where R is installed system-wide (e.g., `/usr/bin/R`), you can use renv without needing administrator privileges. All packages are installed to your project's local library and your personal cache.
+
+### Setting Up a New Project
+
+Navigate to your project directory and start R:
+
+```console
+cd /path/to/your/project
+/usr/bin/R
+```
+
+Then initialise renv:
+
+```r
+# Install renv to your user library if not already available
+install.packages("renv")
+
+# Initialise renv in the current directory
+renv::init()
+```
+```
+- renv activated -- please restart the R session.
+```
+
+### Working with an Existing renv Project
+
+If you clone or receive a project that already has renv configured:
+
+```console
+cd /path/to/project
+/usr/bin/R
+```
+
+The `.Rprofile` in the project directory automatically activates renv when R starts. Then restore the environment:
+
+```r
+renv::restore()
+```
+
+### Configuring the Cache Location
+
+On shared servers, you may want to place your renv cache in a specific location (e.g., a directory with more disk quota). Set the `RENV_PATHS_CACHE` environment variable before starting R:
+
+```console
+export RENV_PATHS_CACHE=/path/to/your/renv/cache
+/usr/bin/R
+```
+
+Or add it to your `~/.bashrc` or `~/.bash_profile`:
+
+```bash
+export RENV_PATHS_CACHE="$HOME/.local/share/renv/cache"
+```
+
+### Running R Scripts
+
+When running R scripts non-interactively, ensure you run them from the project directory so the `.Rprofile` activates renv:
+
+```console
+cd /path/to/project
+/usr/bin/Rscript analysis.R
+```
+
+Or specify the working directory explicitly:
+
+```console
+/usr/bin/Rscript --vanilla -e "setwd('/path/to/project'); source('.Rprofile'); source('analysis.R')"
+```
