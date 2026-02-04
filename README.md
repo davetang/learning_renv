@@ -1,10 +1,69 @@
-# README
+# Learning renv
 
 renv is an R package for dependency management that helps create reproducible R projects. It isolates project libraries so that each project has its own set of package versions, independent of other projects and the system library.
 
 Each renv project has its own library stored in the `renv/library` directory. When you load R in a project with renv activated, R uses this project-specific library instead of the user or system library. This isolation means installing or updating packages in one project does not affect other projects. Without isolation, updating a package for one project could break another. renv eliminates this conflict by giving each project its own library.
 
-## The Lockfile
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Core Concepts](#core-concepts)
+  - [The Lockfile](#the-lockfile)
+  - [Global Package Cache](#global-package-cache)
+  - [Automatic Dependency Discovery](#automatic-dependency-discovery)
+  - [Stability](#stability)
+- [Basic Usage](#basic-usage)
+  - [Initialising a Project](#initialising-a-project)
+  - [Installing Packages](#installing-packages)
+  - [Snapshotting](#snapshotting)
+  - [Restoring an Environment](#restoring-an-environment)
+  - [Checking Status](#checking-status)
+  - [Updating Packages](#updating-packages)
+- [RStudio Projects](#rstudio-projects)
+  - [Why This Combination Works Well](#why-this-combination-works-well)
+  - [Setting Up renv in a New RStudio Project](#setting-up-renv-in-a-new-rstudio-project)
+  - [Adding renv to an Existing RStudio Project](#adding-renv-to-an-existing-rstudio-project)
+  - [Recommended Workflow](#recommended-workflow)
+  - [Best Practices](#best-practices)
+  - [Limitations](#limitations)
+- [Package Sources](#package-sources)
+  - [Bioconductor](#bioconductor)
+  - [GitHub and Other Sources](#github-and-other-sources)
+- [Integration](#integration)
+  - [Version Control](#version-control)
+  - [Continuous Integration](#continuous-integration)
+  - [Docker and Containers](#docker-and-containers)
+- [Advanced Topics](#advanced-topics)
+  - [Upgrading R Versions](#upgrading-r-versions)
+  - [Shared Servers](#shared-servers)
+
+## Getting Started
+
+Start RStudio Server using Docker:
+
+```console
+./bin/run_rstudio.sh
+```
+
+After opening the project via `learning_renv.Rproj`, run `renv::init()` to restore the project from the lockfile.
+
+```r
+renv::init()
+```
+```
+This project already has a lockfile. What would you like to do?
+
+1: Restore the project from the lockfile.
+2: Discard the lockfile and re-initialize the project.
+3: Activate the project without snapshotting or installing any packages.
+4: Abort project initialization.
+
+Selection: 1
+```
+
+## Core Concepts
+
+### The Lockfile
 
 The `renv.lock` file is a JSON file that records the exact versions of all packages used in your project, including:
 
@@ -15,7 +74,7 @@ The `renv.lock` file is a JSON file that records the exact versions of all packa
 
 This lockfile (theoretically) allows anyone to recreate your exact package environment. Sharing a lockfile through version control means collaborators should be able to run `renv::restore()` to get an identical environment without manual coordination about which packages to install.
 
-## Global Package Cache
+### Global Package Cache
 
 While each project has its own library, renv uses a global cache to avoid redundant downloads and installations. When you install a package, renv first checks if that exact version already exists in the cache. If so, it creates a link to the cached package rather than downloading and installing it again. This saves disk space and installation time, especially when multiple projects use the same packages.
 
@@ -28,17 +87,17 @@ renv::paths$cache()
 
 The cache is particularly valuable in environments where multiple users share a system or when using containers, as packages only need to be compiled once.
 
-## Automatic Dependency Discovery
+### Automatic Dependency Discovery
 
 When you run `renv::snapshot()`, renv scans your project files (R scripts, R Markdown documents, DESCRIPTION files) to discover which packages your project actually uses; only these packages and their dependencies are recorded in the lockfile.
 
-## Stability
+### Stability
 
 Package updates can introduce breaking changes. With {renv}, you control when packages are updated. Your project remains stable until you explicitly choose to update, test the changes, and snapshot the new state.
 
-## Typical Usage
+## Basic Usage
 
-Starting a new project:
+### Initialising a Project
 
 ```r
 # Initialize renv in a new project
@@ -51,7 +110,7 @@ This creates:
 * `renv.lock` file (initially recording currently used packages)
 * `.Rprofile` that activates renv when the project is opened
 
-Installing packages:
+### Installing Packages
 
 ```r
 # Install packages as usual
@@ -67,6 +126,8 @@ renv::install("tidyverse/dplyr")
 renv::install("dplyr@1.1.0")
 ```
 
+### Snapshotting
+
 After installing packages **AND** writing code that uses them:
 
 ```r
@@ -76,7 +137,7 @@ renv::snapshot()
 
 {renv} will scan your project, identify which packages are used, and record their versions in `renv.lock`.
 
-Restoring An environment
+### Restoring an Environment
 
 ```r
 # Install packages as recorded in the lockfile
@@ -85,7 +146,7 @@ renv::restore()
 
 This installs the exact package versions specified in `renv.lock`.
 
-Checking status:
+### Checking Status
 
 ```r
 # See if your library matches the lockfile
@@ -98,7 +159,7 @@ This reports packages that are:
 * Installed but not in the lockfile
 * Installed with a different version than the lockfile specifies
 
-Updating packages
+### Updating Packages
 
 ```r
 # Update a specific package
@@ -111,9 +172,11 @@ renv::update()
 renv::snapshot()
 ```
 
-## Using {renv} with RStudio Projects
+## RStudio Projects
 
 Using renv with RStudio Projects is the recommended approach for managing R project environments. RStudio has built-in support for renv, making setup straightforward and providing a cohesive workflow.
+
+### Why This Combination Works Well
 
 * **Project-based isolation**: RStudio Projects already encourage organising work into self-contained directories. Each `.Rproj` file defines a project root, and renv builds on this by creating a project-specific library within that same directory structure.
 * **Automatic activation**: When you open an RStudio Project that uses renv, the `.Rprofile` in the project directory automatically activates renv. You don't need to remember to load anything—just open the project and start working.
@@ -123,7 +186,7 @@ Using renv with RStudio Projects is the recommended approach for managing R proj
 
 When creating a new project in RStudio, you can enable renv directly:
 
-1. Go to **File -> New Project**
+1. Go to **File → New Project**
 2. Choose **New Directory** or **Existing Directory**
 3. Check the box **"Use renv with this project"**
 4. Click **Create Project**
@@ -165,7 +228,9 @@ This creates the renv infrastructure within your existing project structure.
 * **System dependencies are not tracked**: Packages that require system libraries (like those needing `libcurl` or `libxml2`) may fail to install if those libraries are missing. Document system requirements separately.
 * **Binary vs source packages**: Package installation may differ between operating systems. A lockfile created on macOS may require source compilation on Linux, which can take longer and may need additional development tools.
 
-## Using {renv} with Bioconductor
+## Package Sources
+
+### Bioconductor
 
 {renv} integrates with Bioconductor. When you install Bioconductor packages, renv records the Bioconductor version and repository URLs in the lockfile:
 
@@ -182,41 +247,7 @@ renv::snapshot()
 
 The lockfile will include Bioconductor-specific repositories to ensure packages are restored from the correct source.
 
-## Version Control Integration
-
-These files should be committed to version control:
-
-* `renv.lock` - The lockfile (essential for reproducibility)
-* `.Rprofile` - Activates renv on project load
-* `renv/activate.R` - Bootstrap script for renv
-* `renv/settings.json` - Project settings (if present)
-
-These should be ignored (renv's `.gitignore` handles this):
-
-* `renv/library/` - The installed packages
-* `renv/staging/` - Temporary installation directory
-
-## Continuous Integration
-
-{renv} works well with CI systems like GitHub Actions. A typical workflow:
-
-1. Cache the renv library and global cache between runs
-2. Run `renv::restore()` to install packages
-3. Run your tests or build your project
-
-This ensures CI uses the same package versions as development.
-
-## Docker and Containers
-
-When using renv in Docker:
-
-1. Copy `renv.lock` into the container
-2. Install renv and run `renv::restore()`
-3. Optionally mount a cache volume to speed up builds
-
-Setting `RENV_PATHS_CACHE` to a mounted volume allows cache sharing across container rebuilds.
-
-## Handling Packages Not on CRAN
+### GitHub and Other Sources
 
 For packages from GitHub, GitLab, or other sources:
 
@@ -233,7 +264,45 @@ renv::install("/path/to/package")
 
 {renv} records the source information so these packages can be restored.
 
-## Upgrading R Versions
+## Integration
+
+### Version Control
+
+These files should be committed to version control:
+
+* `renv.lock` - The lockfile (essential for reproducibility)
+* `.Rprofile` - Activates renv on project load
+* `renv/activate.R` - Bootstrap script for renv
+* `renv/settings.json` - Project settings (if present)
+
+These should be ignored (renv's `.gitignore` handles this):
+
+* `renv/library/` - The installed packages
+* `renv/staging/` - Temporary installation directory
+
+### Continuous Integration
+
+{renv} works well with CI systems like GitHub Actions. A typical workflow:
+
+1. Cache the renv library and global cache between runs
+2. Run `renv::restore()` to install packages
+3. Run your tests or build your project
+
+This ensures CI uses the same package versions as development.
+
+### Docker and Containers
+
+When using renv in Docker:
+
+1. Copy `renv.lock` into the container
+2. Install renv and run `renv::restore()`
+3. Optionally mount a cache volume to speed up builds
+
+Setting `RENV_PATHS_CACHE` to a mounted volume allows cache sharing across container rebuilds.
+
+## Advanced Topics
+
+### Upgrading R Versions
 
 When upgrading R, packages typically need to be reinstalled since they are compiled for specific R versions. With renv:
 
@@ -243,35 +312,11 @@ When upgrading R, packages typically need to be reinstalled since they are compi
 
 The global cache may already have packages compiled for the new version from other projects, speeding up this process.
 
-## Getting started
-
-Start RStudio Server.
-
-```console
-./bin/run_rstudio.sh
-```
-
-After opening the project via `learning_renv.Rproj`, run `renv::init()` to restore the project from the lockfile.
-
-```r
-renv::init()
-```
-```
-This project already has a lockfile. What would you like to do?
-
-1: Restore the project from the lockfile.
-2: Discard the lockfile and re-initialize the project.
-3: Activate the project without snapshotting or installing any packages.
-4: Abort project initialization.
-
-Selection: 1
-```
-
-## Using renv on a Shared Server
+### Shared Servers
 
 On a shared server where R is installed system-wide (e.g., `/usr/bin/R`), you can use renv without needing administrator privileges. All packages are installed to your project's local library and your personal cache.
 
-### Setting Up a New Project
+#### Setting Up a New Project
 
 Navigate to your project directory and start R:
 
@@ -293,7 +338,7 @@ renv::init()
 - renv activated -- please restart the R session.
 ```
 
-### Working with an Existing renv Project
+#### Working with an Existing renv Project
 
 If you clone or receive a project that already has renv configured:
 
@@ -308,7 +353,7 @@ The `.Rprofile` in the project directory automatically activates renv when R sta
 renv::restore()
 ```
 
-### Configuring the Cache Location
+#### Configuring the Cache Location
 
 On shared servers, you may want to place your renv cache in a specific location (e.g., a directory with more disk quota). Set the `RENV_PATHS_CACHE` environment variable before starting R:
 
@@ -323,7 +368,7 @@ Or add it to your `~/.bashrc` or `~/.bash_profile`:
 export RENV_PATHS_CACHE="$HOME/.local/share/renv/cache"
 ```
 
-### Running R Scripts
+#### Running R Scripts
 
 When running R scripts non-interactively, ensure you run them from the project directory so the `.Rprofile` activates renv:
 
