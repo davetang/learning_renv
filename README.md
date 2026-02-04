@@ -111,6 +111,60 @@ renv::update()
 renv::snapshot()
 ```
 
+## Using {renv} with RStudio Projects
+
+Using renv with RStudio Projects is the recommended approach for managing R project environments. RStudio has built-in support for renv, making setup straightforward and providing a cohesive workflow.
+
+* **Project-based isolation**: RStudio Projects already encourage organising work into self-contained directories. Each `.Rproj` file defines a project root, and renv builds on this by creating a project-specific library within that same directory structure.
+* **Automatic activation**: When you open an RStudio Project that uses renv, the `.Rprofile` in the project directory automatically activates renv. You don't need to remember to load anything—just open the project and start working.
+* **Relative paths**: RStudio Projects set the working directory to the project root, making all paths relative. Combined with the `here` package, your code becomes portable across machines without path adjustments.
+
+### Setting Up renv in a New RStudio Project
+
+When creating a new project in RStudio, you can enable renv directly:
+
+1. Go to **File -> New Project**
+2. Choose **New Directory** or **Existing Directory**
+3. Check the box **"Use renv with this project"**
+4. Click **Create Project**
+
+This automatically initialises renv, creating the `renv/` directory, `renv.lock`, and `.Rprofile`. You skip the manual `renv::init()` step entirely.
+
+### Adding renv to an Existing RStudio Project
+
+If you already have an RStudio Project without renv:
+
+```r
+# Open your project in RStudio, then run:
+renv::init()
+```
+
+This creates the renv infrastructure within your existing project structure.
+
+### Recommended Workflow
+
+1. **Open your RStudio Project** — renv activates automatically
+2. **Install packages as needed** — use `install.packages()` or `renv::install()`
+3. **Write code that uses those packages** — renv only tracks packages you actually use
+4. **Snapshot your environment** — run `renv::snapshot()` to update the lockfile
+5. **Commit changes** — add `renv.lock` and `renv/activate.R` to version control
+6. **Share with collaborators** — they run `renv::restore()` to recreate your environment
+
+### Best Practices
+
+* **One project, one `.Rproj` file, one `renv.lock`**: Keep the relationship simple. Each RStudio Project should have its own renv environment.
+* **Snapshot after confirming code works**: Don't snapshot immediately after installing a package. First verify your code runs correctly with the new package, then snapshot.
+* **Use `renv::status()` regularly**: This shows whether your library matches the lockfile. Run it before committing to ensure everything is in sync.
+* **Commit the lockfile frequently**: Treat `renv.lock` like code. Small, frequent commits make it easier to track what changed and roll back if needed.
+* **Don't edit `renv.lock` manually**: Let renv manage the lockfile. Manual edits can introduce inconsistencies.
+* **Pair with version control**: The combination of RStudio Projects + renv + Git provides a solid foundation for reproducible research. RStudio's Git integration makes this workflow seamless.
+
+### Limitations
+
+* **renv does not manage R versions**: The lockfile records which R version was used, but renv cannot install R itself. You need to ensure the correct R version is available on each machine.
+* **System dependencies are not tracked**: Packages that require system libraries (like those needing `libcurl` or `libxml2`) may fail to install if those libraries are missing. Document system requirements separately.
+* **Binary vs source packages**: Package installation may differ between operating systems. A lockfile created on macOS may require source compilation on Linux, which can take longer and may need additional development tools.
+
 ## Using {renv} with Bioconductor
 
 {renv} integrates with Bioconductor. When you install Bioconductor packages, renv records the Bioconductor version and repository URLs in the lockfile:
