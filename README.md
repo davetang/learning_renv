@@ -19,6 +19,8 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
   - [Restoring an Environment](#restoring-an-environment)
   - [Checking Status](#checking-status)
   - [Updating Packages](#updating-packages)
+  - [Cleaning Up Unused Packages](#cleaning-up-unused-packages)
+  - [Deactivating and Reactivating](#deactivating-and-reactivating)
 - [RStudio Projects](#rstudio-projects)
   - [Why This Combination Works Well](#why-this-combination-works-well)
   - [Setting Up renv in a New RStudio Project](#setting-up-renv-in-a-new-rstudio-project)
@@ -36,8 +38,16 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
 - [Advanced Topics](#advanced-topics)
   - [Upgrading R Versions](#upgrading-r-versions)
   - [Shared Servers](#shared-servers)
+    - [Setting Up a New Project](#setting-up-a-new-project)
+    - [Working with an Existing renv Project](#working-with-an-existing-renv-project)
+    - [Configuring the Cache Location](#configuring-the-cache-location)
+    - [Running R Scripts](#running-r-scripts)
+- [Troubleshooting](#troubleshooting)
+- [Further Reading](#further-reading)
 
 ## Getting Started
+
+**Prerequisites:** You need [Docker](https://docs.docker.com/get-docker/) installed and running on your machine.
 
 Start RStudio Server using Docker:
 
@@ -90,6 +100,23 @@ The cache is particularly valuable in environments where multiple users share a 
 ### Automatic Dependency Discovery
 
 When you run `renv::snapshot()`, renv scans your project files (R scripts, R Markdown documents, DESCRIPTION files) to discover which packages your project actually uses; only these packages and their dependencies are recorded in the lockfile.
+
+You can inspect what renv detects with `renv::dependencies()`:
+
+```r
+# See all discovered dependencies
+renv::dependencies()
+```
+
+If renv is picking up unwanted files (e.g., scratch scripts or teaching examples), you can create a `.renvignore` file in the project root. It works like `.gitignore`—one pattern per line:
+
+```
+# Ignore scratch scripts
+scratch/
+temp_*.R
+```
+
+Files matched by `.renvignore` will be excluded from dependency scanning during `renv::snapshot()`.
 
 ### Stability
 
@@ -171,6 +198,31 @@ renv::update()
 # After updating, snapshot to record new versions
 renv::snapshot()
 ```
+
+### Cleaning Up Unused Packages
+
+Over time, your project library may accumulate packages that are no longer used. `renv::clean()` removes these:
+
+```r
+# Remove unused packages from the project library
+renv::clean()
+```
+
+This is useful after removing `library()` calls from your code and re-snapshotting.
+
+### Deactivating and Reactivating
+
+You can temporarily disable renv for a project without removing it:
+
+```r
+# Deactivate renv (reverts to default library paths)
+renv::deactivate()
+
+# Reactivate renv
+renv::activate()
+```
+
+Deactivating removes the renv auto-loader from `.Rprofile` so that the next R session uses the default library. Reactivating restores it. This can be helpful for debugging whether an issue is renv-specific.
 
 ## RStudio Projects
 
@@ -280,6 +332,8 @@ These should be ignored (renv's `.gitignore` handles this):
 * `renv/library/` - The installed packages
 * `renv/staging/` - Temporary installation directory
 
+**Resolving lockfile merge conflicts:** Since `renv.lock` is a JSON file, Git merge conflicts are common when multiple collaborators snapshot independently. Rather than manually editing the conflict markers, resolve the conflict by picking either version of the file, then running `renv::snapshot()` to regenerate the lockfile from the current project state.
+
 ### Continuous Integration
 
 {renv} works well with CI systems like GitHub Actions. A typical workflow:
@@ -382,3 +436,55 @@ Or specify the working directory explicitly:
 ```console
 /usr/bin/Rscript --vanilla -e "setwd('/path/to/project'); source('.Rprofile'); source('analysis.R')"
 ```
+
+## Troubleshooting
+
+### renv Not Activating
+
+If renv does not activate when you open your project, check that `.Rprofile` exists in the project root and contains:
+
+```r
+source("renv/activate.R")
+```
+
+Also verify that `renv/activate.R` exists. If it is missing, you can regenerate it with:
+
+```r
+renv::activate()
+```
+
+### Package Fails to Install from Source
+
+On Linux, packages that contain C/C++ or Fortran code are compiled from source. If installation fails, you are likely missing system libraries. Common examples:
+
+* `libcurl4-openssl-dev` — required by {curl}, {httr}, {httr2}
+* `libxml2-dev` — required by {xml2}
+* `libssl-dev` — required by {openssl}
+* `libfontconfig1-dev` and `libfreetype6-dev` — required by {systemfonts}, {ragg}
+
+Install the missing system library, then retry `renv::restore()` or `renv::install()`.
+
+### Lockfile Out of Sync
+
+If `renv::status()` reports differences between your library and the lockfile:
+
+* **Packages in lockfile but not installed** — run `renv::restore()` to install them.
+* **Packages installed but not in lockfile** — either add `library()` calls for packages you want to keep, then run `renv::snapshot()`, or run `renv::clean()` to remove them.
+* **Version mismatch** — decide whether the installed version or the lockfile version is correct. Use `renv::restore()` to match the lockfile, or `renv::snapshot()` to update the lockfile to match your library.
+
+### Slow Package Installation
+
+If installs are slow, check that the global cache is being used:
+
+```r
+renv::paths$cache()
+```
+
+Packages already in the cache are linked rather than re-downloaded and compiled. If you are on a shared server, ensure `RENV_PATHS_CACHE` points to a shared location so multiple projects (or users) benefit from the same cache.
+
+## Further Reading
+
+* [Official renv documentation](https://rstudio.github.io/renv/) — comprehensive reference for all renv features and configuration options.
+* [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html) — the getting started vignette.
+* [renv FAQ](https://rstudio.github.io/renv/articles/faq.html) — answers to frequently asked questions.
+* [renv on GitHub](https://github.com/rstudio/renv) — source code and issue tracker.
