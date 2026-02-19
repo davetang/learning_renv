@@ -44,7 +44,7 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
     - [Configuring the Cache Location](#configuring-the-cache-location)
     - [Running R Scripts](#running-r-scripts)
 - [Troubleshooting](#troubleshooting)
-- [Limitations](#limitations)
+- [Limitations](#renv-limitations)
 - [Further Reading](#further-reading)
 
 ## Getting Started
@@ -496,7 +496,7 @@ renv::paths$cache()
 
 Packages already in the cache are linked rather than re-downloaded and compiled. If you are on a shared server, ensure `RENV_PATHS_CACHE` points to a shared location so multiple projects (or users) benefit from the same cache.
 
-## Limitations
+## renv limitations
 
 * **R version is recorded but not enforced**: The lockfile captures which R version was used, but renv cannot install R or prevent you from restoring on a different version. Restoring on a mismatched R version may cause package compilation failures or subtle behavioural differences, since R packages are compiled against a specific R version.
 
