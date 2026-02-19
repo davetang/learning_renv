@@ -11,12 +11,14 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
   - [The Lockfile](#the-lockfile)
   - [Global Package Cache](#global-package-cache)
   - [Automatic Dependency Discovery](#automatic-dependency-discovery)
+  - [Snapshot Types](#snapshot-types)
   - [Stability](#stability)
 - [Basic Usage](#basic-usage)
   - [Initialising a Project](#initialising-a-project)
   - [Installing Packages](#installing-packages)
   - [Snapshotting](#snapshotting)
   - [Restoring an Environment](#restoring-an-environment)
+  - [Reverting to a Previous State](#reverting-to-a-previous-state)
   - [Checking Status](#checking-status)
   - [Updating Packages](#updating-packages)
   - [Cleaning Up Unused Packages](#cleaning-up-unused-packages)
@@ -43,6 +45,7 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
     - [Working with an Existing renv Project](#working-with-an-existing-renv-project)
     - [Configuring the Cache Location](#configuring-the-cache-location)
     - [Running R Scripts](#running-r-scripts)
+  - [Profiles](#profiles)
 - [Troubleshooting](#troubleshooting)
 - [Limitations](#renv-limitations)
 - [Further Reading](#further-reading)
@@ -120,6 +123,25 @@ temp_*.R
 
 Files matched by `.renvignore` will be excluded from dependency scanning during `renv::snapshot()`.
 
+### Snapshot Types
+
+The snapshot type controls which packages renv records in the lockfile. It can be set per-project with `renv::settings$snapshot.type()` or passed directly to `renv::snapshot(type = ...)`.
+
+* **`implicit`** (default): renv scans your project's source files for `library()`, `require()`, and `::` calls and records only the packages your code actually uses, plus their dependencies. This keeps the lockfile lean and avoids capturing packages you installed experimentally but never used.
+* **`explicit`**: renv reads a `DESCRIPTION` file in the project root and records the packages listed in its `Imports`, `Depends`, and `Suggests` fields. This is the standard approach for R package development, where dependencies are declared explicitly rather than inferred from code.
+* **`all`**: renv records every package currently installed in the project library, regardless of whether your code uses it. This captures an environment exactly as-is and is useful when you want to preserve an ad hoc working state.
+
+```r
+# Check the current snapshot type for this project
+renv::settings$snapshot.type()
+
+# Change it (persisted in renv/settings.json)
+renv::settings$snapshot.type("explicit")
+
+# Or override for a single snapshot without changing the project setting
+renv::snapshot(type = "all")
+```
+
 ### Stability
 
 Package updates can introduce breaking changes. With {renv}, you control when packages are updated. Your project remains stable until you explicitly choose to update, test the changes, and snapshot the new state.
@@ -174,6 +196,20 @@ renv::restore()
 ```
 
 This installs the exact package versions specified in `renv.lock`.
+
+### Reverting to a Previous State
+
+If `renv.lock` is tracked in Git, renv can use that history to roll the lockfile back to any previous state:
+
+```r
+# List commits that modified renv.lock
+renv::history()
+
+# Revert the lockfile to a specific commit and restore that environment
+renv::revert(commit = "abc1234")
+```
+
+`renv::history()` shows the git log for `renv.lock`, with commit hashes and messages. `renv::revert()` checks out that version of the lockfile and automatically calls `renv::restore()` to bring the library into sync with it. This requires Git to be installed and the project to be inside a Git repository.
 
 ### Checking Status
 
@@ -450,6 +486,43 @@ Or specify the working directory explicitly:
 ```console
 /usr/bin/Rscript --vanilla -e "setwd('/path/to/project'); source('.Rprofile'); source('analysis.R')"
 ```
+
+### Profiles
+
+Profiles allow a single project to maintain separate lockfiles and libraries for different contexts. The most common use is separating development-only packages (e.g., {devtools}, {testthat}, {lintr}) from the default environment used in production or by collaborators.
+
+Each profile stores its own lockfile and library under `renv/profiles/<name>/`:
+
+```
+renv/
+  profiles/
+    dev/
+      renv.lock
+      library/
+```
+
+The default profile (no name) always uses the root `renv.lock`.
+
+```r
+# Activate a profile called "dev"
+renv::activate(profile = "dev")
+
+# Install development-only packages into the dev profile
+renv::install("devtools")
+renv::install("testthat")
+renv::snapshot()
+
+# Return to the default profile
+renv::activate()
+```
+
+The active profile is stored in the `RENV_PROFILE` environment variable and can be checked with:
+
+```r
+Sys.getenv("RENV_PROFILE")
+```
+
+Profiles are independent: snapshotting or restoring in one profile does not affect another. This makes them well suited for keeping CI and production environments lean while still tracking the full set of tools used during development.
 
 ## Troubleshooting
 
