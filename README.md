@@ -44,6 +44,7 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
     - [Configuring the Cache Location](#configuring-the-cache-location)
     - [Running R Scripts](#running-r-scripts)
 - [Troubleshooting](#troubleshooting)
+- [Limitations](#limitations)
 - [Further Reading](#further-reading)
 
 ## Getting Started
@@ -494,6 +495,26 @@ renv::paths$cache()
 ```
 
 Packages already in the cache are linked rather than re-downloaded and compiled. If you are on a shared server, ensure `RENV_PATHS_CACHE` points to a shared location so multiple projects (or users) benefit from the same cache.
+
+## Limitations
+
+* **R version is recorded but not enforced**: The lockfile captures which R version was used, but renv cannot install R or prevent you from restoring on a different version. Restoring on a mismatched R version may cause package compilation failures or subtle behavioural differences, since R packages are compiled against a specific R version.
+
+* **System libraries are not tracked**: Many packages depend on system-level C/C++ libraries (e.g., `libcurl`, `libxml2`, `libssl`, `libgdal`). renv does not capture these, so a collaborator or CI environment may have the right R packages but still fail to install or load them if system libraries are absent or incompatible. Document system requirements separately, or use Docker to capture the full system environment.
+
+* **Binary and source packages differ across platforms**: A lockfile created on macOS or Windows, where CRAN provides pre-compiled binaries, may require source compilation when restored on Linux. Source compilation is slower, requires development tools (compilers, headers), and may fail if system libraries are missing.
+
+* **Old package versions may be hard to install**: CRAN archives older package versions, but archived packages must be compiled from source, which can fail on newer compilers or against updated system libraries. Very old packages may also have dependencies that are themselves no longer available or compatible.
+
+* **Private package sources require separate authentication**: If your lockfile references packages from private GitHub repositories, internal package repositories, or other authenticated sources, each collaborator must independently configure credentials. renv records where to find a package but cannot transfer access rights.
+
+* **renv does not manage Python or other external tools**: For projects that mix R and Python (e.g., via {reticulate}), renv only handles the R side. Python package versions, virtual environments, and other external dependencies must be managed separately.
+
+* **Restoring from scratch can be slow**: On a clean machine with an empty cache, `renv::restore()` must download and compile every package. For large dependency trees on Linux (where source compilation is common), this can take a significant amount of time. Seeding a shared cache in advance mitigates this.
+
+* **renv must bootstrap itself**: When a collaborator opens a project for the first time, the `.Rprofile` attempts to auto-install renv if it is not present. This requires an internet connection. In air-gapped environments, renv must be installed manually before the project can be activated.
+
+* **Not a complete reproducibility solution**: renv improves reproducibility at the R package level, but the broader computational environment (operating system, system library versions, locale, hardware) can still affect results. For complete environment reproducibility, combine renv with Docker or a similar containerisation tool.
 
 ## Further Reading
 
