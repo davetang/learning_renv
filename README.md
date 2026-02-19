@@ -35,6 +35,7 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
   - [Version Control](#version-control)
   - [Continuous Integration](#continuous-integration)
   - [Docker and Containers](#docker-and-containers)
+    - [Package Isolation in Docker Containers](#package-isolation-in-docker-containers)
 - [Advanced Topics](#advanced-topics)
   - [Upgrading R Versions](#upgrading-r-versions)
   - [Shared Servers](#shared-servers)
@@ -353,6 +354,18 @@ When using renv in Docker:
 3. Optionally mount a cache volume to speed up builds
 
 Setting `RENV_PATHS_CACHE` to a mounted volume allows cache sharing across container rebuilds.
+
+### Package Isolation in Docker Containers
+
+If your Docker image has R packages pre-installed (e.g., in `/usr/local/lib/R/library`), those packages are **not** automatically available to your renv project.
+
+When renv is active, it modifies `.libPaths()` to point exclusively to the project library and uses a sandbox to prevent R from falling back to the system library. Pre-installed packages are therefore isolated from your project by default.
+
+**What is always shared:** Base and recommended R packages are part of R itself and cannot be isolated. These include `base`, `stats`, `utils`, `methods`, `graphics`, `grDevices`, `datasets`, `grid`, `tools`, `parallel`, and similar packages. All contributed packages (CRAN, Bioconductor, GitHub) are subject to renv's isolation.
+
+**The cache vs. isolation:** A shared cache (via `RENV_PATHS_CACHE`) is about efficiency, not isolation. When renv installs a package, it stores a copy in the cache and creates a symlink from the project library to that cached copy. Multiple projects sharing the same cache each have their own symlinks, so package availability remains per-project. Pre-installed Docker packages can seed this cache so that `renv::restore()` links to existing binaries rather than downloading them - this is often the primary purpose of pre-installing packages in a Docker image.
+
+**Disabling isolation:** If you need system packages accessible, you can disable the sandbox by setting the environment variable `RENV_CONFIG_SANDBOX_ENABLED=FALSE` before starting R. This is not recommended for reproducible workflows, as it allows the project to silently depend on packages not recorded in the lockfile.
 
 ## Advanced Topics
 
