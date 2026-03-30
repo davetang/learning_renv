@@ -38,6 +38,7 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
   - [Continuous Integration](#continuous-integration)
   - [Docker and Containers](#docker-and-containers)
     - [Package Isolation in Docker Containers](#package-isolation-in-docker-containers)
+- [Python Integration](#python-integration)
 - [Advanced Topics](#advanced-topics)
   - [Upgrading R Versions](#upgrading-r-versions)
   - [Shared Servers](#shared-servers)
@@ -404,6 +405,53 @@ When renv is active, it modifies `.libPaths()` to point exclusively to the proje
 
 **Disabling isolation:** If you need system packages accessible, you can disable the sandbox by setting the environment variable `RENV_CONFIG_SANDBOX_ENABLED=FALSE` before starting R. This is not recommended for reproducible workflows, as it allows the project to silently depend on packages not recorded in the lockfile.
 
+## Python Integration
+
+renv has built-in support for managing Python dependencies alongside R packages. This is useful for projects that use {reticulate} to call Python from R.
+
+### Setting Up Python
+
+Use `renv::use_python()` to associate a Python environment with your project:
+
+```r
+# Auto-detect or create a virtualenv
+renv::use_python()
+
+# Explicitly use a virtualenv
+renv::use_python(type = "virtualenv")
+
+# Use a Conda environment
+renv::use_python(type = "conda")
+```
+
+### Installing Python Packages
+
+Install Python packages via {reticulate}:
+
+```r
+reticulate::py_install("pandas")
+reticulate::py_install("numpy")
+```
+
+### Snapshotting and Restoring
+
+renv detects Python dependencies by scanning for `import` statements in `.py` and `.Rmd` files, as well as {reticulate} usage in R files. When you snapshot, renv captures Python packages into a `requirements.txt` alongside the `renv.lock`:
+
+```r
+# Snapshot captures both R and Python dependencies
+renv::snapshot()
+
+# Restore reinstalls both R and Python packages
+renv::restore()
+```
+
+### Caveats
+
+* **Requires {reticulate}**: Python integration depends on the {reticulate} package being installed.
+* **Python version is not locked**: renv manages Python packages but not the Python interpreter itself. Collaborators need a compatible Python version installed.
+* **Virtualenvs work best**: Conda support is more limited than virtualenv support.
+* **Static analysis only**: Python dependency detection is based on scanning `import` statements, so dynamically loaded packages (e.g., via `importlib`) may be missed.
+
 ## Advanced Topics
 
 ### Upgrading R Versions
@@ -581,7 +629,7 @@ Packages already in the cache are linked rather than re-downloaded and compiled.
 
 * **Private package sources require separate authentication**: If your lockfile references packages from private GitHub repositories, internal package repositories, or other authenticated sources, each collaborator must independently configure credentials. renv records where to find a package but cannot transfer access rights.
 
-* **renv does not manage Python or other external tools**: For projects that mix R and Python (e.g., via {reticulate}), renv only handles the R side. Python package versions, virtual environments, and other external dependencies must be managed separately.
+* **Limited Python support**: renv can snapshot and restore Python packages via {reticulate} (see [Python Integration](#python-integration)), but it does not manage the Python interpreter version, and dependency detection relies on static analysis of `import` statements. Other external tools and non-Python dependencies must be managed separately.
 
 * **Restoring from scratch can be slow**: On a clean machine with an empty cache, `renv::restore()` must download and compile every package. For large dependency trees on Linux (where source compilation is common), this can take a significant amount of time. Seeding a shared cache in advance mitigates this.
 
