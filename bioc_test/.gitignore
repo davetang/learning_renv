@@ -1,0 +1,10 @@
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/staging/
+.Rhistory
+.RData
+.Rproj.user/
+test_bioc_version.log
