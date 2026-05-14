@@ -27,6 +27,8 @@ Each renv project has its own library stored in the `renv/library` directory. Wh
   - [Why This Combination Works Well](#why-this-combination-works-well)
   - [Setting Up renv in a New RStudio Project](#setting-up-renv-in-a-new-rstudio-project)
   - [Adding renv to an Existing RStudio Project](#adding-renv-to-an-existing-rstudio-project)
+  - [Adding an RStudio Project to an Existing renv Setup](#adding-an-rstudio-project-to-an-existing-renv-setup)
+  - [Opening the Project](#opening-the-project)
   - [Recommended Workflow](#recommended-workflow)
   - [Best Practices](#best-practices)
   - [Limitations](#limitations)
@@ -294,6 +296,35 @@ renv::init()
 ```
 
 This creates the renv infrastructure within your existing project structure.
+
+### Adding an RStudio Project to an Existing renv Setup
+
+If you initialised renv outside RStudio (e.g. from a terminal R session) and the directory has a `renv.lock` but no `.Rproj` file, the recommended approach is to add an RStudio Project to that directory. It is a one-time, non-destructive step that gives you the full integration described above.
+
+In RStudio: **File → New Project → Existing Directory → Browse...** and select the folder containing your `renv.lock`. RStudio drops a small `.Rproj` file next to your existing files; nothing else is moved or changed. From then on, opening that `.Rproj` sets the working directory to the project root and sources the existing `.Rprofile`, which activates renv.
+
+The reason this matters: RStudio only sources `.Rprofile` at R **startup**, based on the working directory at startup. `setwd()`-ing into the renv folder after RStudio is already open does *not* activate renv — `.libPaths()` is already fixed for the session. You can work around this with `source(".Rprofile")` followed by a session restart, but it is fragile and easy to forget. An `.Rproj` makes "open this folder correctly" a single action.
+
+Strictly speaking, renv itself does not require an `.Rproj` — it only needs `.Rprofile` and `renv/activate.R`. If you launch R from a terminal with the project directory as the working directory (`cd /path/to/project && R`), the `.Rprofile` is sourced and renv activates normally. The `.Rproj` is purely for RStudio's benefit.
+
+### Opening the Project
+
+renv is project-scoped, and it activates only when R sources the project's `.Rprofile`. Launching RStudio on its own does **not** do this — a bare RStudio session starts in your home directory with no `.Rprofile` sourced, so `.libPaths()` points at the user or system library and the project's `renv.lock` is ignored. You have to open the project itself.
+
+Three ways to do that:
+
+* Double-click `learning_renv.Rproj` (or any `.Rproj` file) in a file browser.
+* In RStudio, **File → Open Project** and select the `.Rproj` file.
+* Enable **Tools → Global Options → General → "Restore most recently opened project at startup"** so RStudio reopens the project automatically.
+
+Opening the project sets the working directory to the project root and sources `.Rprofile`, which calls `source("renv/activate.R")` and points `.libPaths()` at `renv/library/`. To confirm renv is active:
+
+```r
+renv::project()   # returns the project path (NULL if renv is not active)
+.libPaths()       # the first entry should be inside renv/library/
+```
+
+If you need to use renv outside an RStudio Project (e.g. a plain R session or a non-interactive script), `setwd()` into the project directory first so R picks up the project `.Rprofile` on startup. See [Running R Scripts](#running-r-scripts) for the non-interactive case.
 
 ### Recommended Workflow
 
